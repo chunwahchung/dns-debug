@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# TODO: write results to file without extra piping
-# TODO: switch case or something to specify what function to use "flags/arguments"
-# TODO: get_node_ip_from_pod - move __out_csv to a separate out directory inside dns_debug
-# TODO: run_dig_on_dns_pods - make a file for each pod
-# TODO: run_dig_on_dns_pods - put each set of runs in a separate folder
-
 readonly DNS_PODS=$(kubectl get po -n openshift-dns --no-headers | cut -d ' ' -f 1 | xargs)
 
 get_node_ip_from_pod() {
@@ -20,8 +14,8 @@ get_node_ip_from_pod() {
 
     for pod in $__pods; do 
         echo starting kubectl on $pod
-        kubectl describe po $pod -n default | grep Node:
-        echo $pod,$(kubectl describe po $pod | grep Node: | cut -d ':' -f 2 | xargs | cut -d '/' -f 1) >> $__out_csv
+        kubectl get pod $pod -n default -o jsonpath='{.spec.nodeName}'
+        echo $pod,$(kubectl get pod $pod -n default -o jsonpath='{.spec.nodeName}') >> $__out_csv
         echo
     done
 }
@@ -53,7 +47,6 @@ check_for_running_client_pods() {
         fi
     done
 }
-
 
 run_dig_on_dns_pods() {
 
